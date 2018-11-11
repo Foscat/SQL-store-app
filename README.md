@@ -11,8 +11,9 @@ It changes the table of info according to what each user does on thier side.
 ## Tech used
 
 * Node 
-** MySQL npm 
-** Inquirer npm
+* MySQL npm 
+* Inquirer npm
+* MySQL workbench
 
 
 ## Customer Side Experiance and Capabilities
