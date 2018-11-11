@@ -8,6 +8,13 @@ It has a client side interface for customers and managers.
 
 It changes the table of info according to what each user does on thier side.
 
+## Tech used
+
+* Node 
+** MySQL npm 
+** Inquirer npm
+
+
 ## Customer Side Experiance and Capabilities
 
 ### When you first enter the customer side interface you will see a screen that looks like this.
@@ -117,8 +124,3 @@ If the manager wants a overview of all products and the data attached to them th
 
 The manager will be prpmted to continue working or quit at end of list
 
-## Tech used
-
-*Node 
-* MySQL npm 
-* Inquirer npm
