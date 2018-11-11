@@ -15,10 +15,13 @@ var connection = mysql.createConnection({
   database: "bamazon"
 });
 
+// inital connection function
 connection.connect(function(err) {
   if (err) throw err;
+
   console.log("connected as id " + connection.threadId + "\n");
-  // readProducts();
+
+  // calls manager browser function
   selectGroup();
 });
 
@@ -85,6 +88,7 @@ function selectGroup(){
     });
 }
 
+// asks user if they want to continue in managing the store or if they want to quit
 function keepGoing(){
     inquirer
     .prompt({
@@ -111,7 +115,7 @@ function keepGoing(){
     });
 }
 
-
+// allows the manager to add products to the inventory
 function addProduct(){
 
     inquirer.prompt([
@@ -121,9 +125,14 @@ function addProduct(){
             message: "Please enter the name of new product."
         },
         {
-            type: "input",
+            type: "list",
             name: "department_name",
-            message: "Please enter the department of new product."
+            message: "Please enter the department of new product.",
+            choices: [
+                "Cleaning Supplies",
+                "General Goods",
+                "Sports Equipment"
+            ]
         },
         {
             type: "input",
@@ -138,6 +147,7 @@ function addProduct(){
             validate: validateInput
         }
     ]).then(function(input){
+
         // informs user if all product info that they just input
         console.log("Adding new product to inventory: \n" +
         "product_name = " + input.product_name + "\n" +
@@ -145,6 +155,7 @@ function addProduct(){
         "price = " + input.price + "\n" +
         "stock_quantity = " + input.stock_quantity);
 
+        // sql query string
         var query = "INSERT INTO products SET ?";
 
         connection.query(query, input, function(err, res){
@@ -155,14 +166,18 @@ function addProduct(){
 
 			// End the database connection
             // connection.end();
+
+            // call the continue or quit function
             keepGoing();
        
         })
     })
 }
 
+// allows the user to add stock to the current inventory
 function addInventory(){
 
+    // take info of what product the user wishes add to  and how much they are adding 
     inquirer.prompt([
         {
             type: "input",
@@ -178,6 +193,7 @@ function addInventory(){
             validate: validateInput,
             filter: Number
         }
+        // takes the user inputs and uses them to change the table through sql querys
     ]).then(function(input){
 
         // input item id number
@@ -186,28 +202,39 @@ function addInventory(){
         // input item quantity number
         var addStock = input.quantity;
 
+        // sql query string
         query = "SELECT * FROM products WHERE ?";
 
+        // connector query
         connection.query(query, {id: item}, function(err, res){
             if(err) throw err;
 
+            // if the id is left blank or does not match with any items on the table
             if(res.length === 0) {
                 console.log("**ERROR** Invalid item id! Please enter a valid item id.");
                 addInventory();
 
             }else{
+
+                // save the base response as a object to save time
                 var choice = res[0];
+                
+                // sql query string
+                var update = "UPDATE products SET stock_quantity = " + (choice.stock_quantity + addStock) + " WHERE ?";
 
-                var update = "UPDATE products SET stock_quantity = " + (choice.stock_quantity + addStock) + "WHERE id = " + item;
+                //console.log(update) //tester
 
-                connection.query(update, function(err, res){
+                //connector query
+                connection.query(update, {id: item}, function(err, res){
                     if (err) throw err;
-
-					console.log('Stock count for Item ID ' + item + ' has been updated to ' + (productData.stock_quantity + addQuantity) + '.');
+                    // console.log(res)
+					console.log('Stock count for Item ID ' + item + ' has been updated to ' + (choice.stock_quantity + addStock) + '.');
 					console.log("\n---------------------------------------------------------------------\n");
 
 					// End the database connection
                     // connection.end();
+
+                    // calls the continue or quit function
                     keepGoing();
             })
             }
@@ -215,18 +242,26 @@ function addInventory(){
     })
 }
 
+// controls the low inventory alerts
 function lowCount() {
 
+    // sql query string
     query = "SELECT * FROM products WHERE stock_quantity < 5";
 
+    // connector query
     connection.query(query, function(err, res){
-
         if(err) throw err;
 
-        console.log("All items with current low inventory.");
+
+        // tells the manager all the items listed under the table.
+        // if there is none there is just this header and nothing else displayed
+        console.log("\nAll items with current low inventory.");
         console.log("-----------------------------------------");
 
+        // emty string var so you can put info into it
         var shortList = "";
+
+        // builds table info for low count items
         for (var i =0; i < res.length; i++) {
             shortList = "";
             shortList += "ID: " + res[i].id + " | ";
@@ -238,16 +273,24 @@ function lowCount() {
             console.log(shortList);
         }
     })
+    // calls continue or quit function
     keepGoing();
 }
 
+// reads all product info to user 
 function readProducts() {
+
+    // informs user that the system is working an displaying info
     console.log("Selecting all product info...\n");
+
     // sql query string
     query = connection.query("SELECT * FROM products", function(err, res) {
      if (err) throw err;
+
      // Log all results of the SELECT statement
      // console.log(res);
+
+     // displays the information in a clean organized manner 
      for (var i = 0; i< res.length; i++){
        console.log(
          "\n| Item #: " + 
@@ -257,14 +300,15 @@ function readProducts() {
          "| Department: " + 
          res[i].department_name + "\n" +
          "| Price: $" + 
-         res[i].price) + "\n" +
+         res[i].price + "\n" +
          "| Amount in stock: " + 
-         res[i].stock_quantity
+         res[i].stock_quantity)
      }
      // logs the actual query being run
      // console.log(query.sql);
     //  connection.end();
      
    });
+   // calls continue or quit function
    keepGoing();
  }
